@@ -11,11 +11,12 @@ def verify_folder (file_path):
       hash_folder.update(chunk)
   return hash_folder.hexdigest()
 
-def creating_log_file():
+def creating_log_file(source_folder):
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
-    log_file = f"log_{timestamp}.txt"
-    with open(log_file, 'w') as new_log:
+    log_file = os.path.join(source_folder, f"log_{timestamp}.txt")
+                            
+    with open(log_file, 'a') as new_log:
         new_log.write("Log file created\n")
     return log_file
 
@@ -42,7 +43,7 @@ def sync_folder (source_folder, replica_folder, log_file):
 
       if not os.path.exists(replica_file) or verify_folder(replica_file) != verify_folder(source_file):
         shutil.copy2(source_file, replica_file)
-        print("Copied", source_file, "to", replica_file)
+        print(f"Copied {source_file} to {replica_file}")
         with open(log_file, 'a') as log:
           log.write(f"Copied {source_file} to {replica_file} \n")
 
@@ -54,18 +55,19 @@ def sync_folder (source_folder, replica_folder, log_file):
             replica_file = os.path.join(replica_root, replica_file)
             if not os.path.exists(source_file):
                os.remove(replica_file)
-               print("Removed", replica_file)
+               print(f"Removed {replica_file}")
                with open(log_file, 'a') as log:
-                   log.write("Removed", replica_file, "\n")
+                   log.write(f"Removed {replica_file} \n")
 
 if __name__ == "__main__":
   source_folder = input("Enter a source folder path: ")
   replica_folder = input("Enter a replica folder path: ")
   log_file = input("Enter a log file path (if you don't have, leave blank to create a new one): ")
+  if not log_file and os.path.exists(source_folder):
+        log_file = creating_log_file(source_folder)
   interval = int(input("Enter the sync interval (in seconds): "))
 
   while True:
     sync_folder(source_folder, replica_folder, log_file)
     time.sleep(interval)
-
     
